@@ -52,28 +52,9 @@ public class AndroidIMESampleService extends InputMethodService
         return keyboardView;
     }
 
-    private void playClick(int keyCode){
-        // 点击按键时播放声音，在onKey函数中被调用
-        AudioManager am = (AudioManager)getSystemService(AUDIO_SERVICE);
-        switch(keyCode){
-            case 32:
-                am.playSoundEffect(AudioManager.FX_KEYPRESS_SPACEBAR);
-                break;
-            case Keyboard.KEYCODE_DONE:
-            case 10:
-                am.playSoundEffect(AudioManager.FX_KEYPRESS_RETURN);
-                break;
-            case Keyboard.KEYCODE_DELETE:
-                am.playSoundEffect(AudioManager.FX_KEYPRESS_DELETE);
-                break;
-            default: am.playSoundEffect(AudioManager.FX_KEYPRESS_STANDARD);
-        }
-    }
-
     @Override
     public void onKey(int primaryCode, int[] keyCodes) {
         InputConnection ic = getCurrentInputConnection();
-        playClick(primaryCode);
         switch(primaryCode){
             case Keyboard.KEYCODE_DELETE :
                 ic.deleteSurroundingText(1, 0);
