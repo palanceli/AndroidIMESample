@@ -11,8 +11,35 @@ import android.view.inputmethod.InputConnection;
 public class AndroidIMESampleService extends InputMethodService
         implements KeyboardView.OnKeyboardActionListener {
 
-    private KeyboardView keyboardView; // 对应keyboard.xml中定义的KeyboardView
-    private Keyboard keyboard;         // 对应qwerty.xml中定义的Keyboard
+    private KeyboardView mKeyboardView; // 对应keyboard.xml中定义的KeyboardView
+    private Keyboard mKeyboard;         // 对应qwerty.xml中定义的Keyboard
+
+    @Override
+    public View onCreateInputView() {
+        // res/layout/keyboard.xml
+        mKeyboardView = (KeyboardView)getLayoutInflater().inflate(R.layout.keyboard, null);
+        mKeyboard = new Keyboard(this, R.xml.qwerty);  // res/xml/qwerty.xml
+        mKeyboardView.setKeyboard(mKeyboard);
+        // 将自己设为mKeyboardView的listener,以便接收和处理键盘消息
+        mKeyboardView.setOnKeyboardActionListener(this);
+        return mKeyboardView;
+    }
+
+    @Override
+    public void onKey(int primaryCode, int[] keyCodes) {
+        InputConnection ic = getCurrentInputConnection();
+        switch(primaryCode){
+            case Keyboard.KEYCODE_DELETE :
+                ic.deleteSurroundingText(1, 0);
+                break;
+            case Keyboard.KEYCODE_DONE:
+                ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
+                break;
+            default:
+                char code = (char)primaryCode;
+                ic.commitText(String.valueOf(code), 1);
+        }
+    }
 
     @Override
     public void onPress(int primaryCode) {
@@ -42,29 +69,4 @@ public class AndroidIMESampleService extends InputMethodService
     public void swipeUp() {
     }
 
-    @Override
-    public View onCreateInputView() {
-        // keyboard被创建后，将调用onCreateInputView函数
-        keyboardView = (KeyboardView)getLayoutInflater().inflate(R.layout.keyboard, null);  // 此处使用了keyboard.xml
-        keyboard = new Keyboard(this, R.xml.qwerty);  // 此处使用了qwerty.xml
-        keyboardView.setKeyboard(keyboard);
-        keyboardView.setOnKeyboardActionListener(this);
-        return keyboardView;
-    }
-
-    @Override
-    public void onKey(int primaryCode, int[] keyCodes) {
-        InputConnection ic = getCurrentInputConnection();
-        switch(primaryCode){
-            case Keyboard.KEYCODE_DELETE :
-                ic.deleteSurroundingText(1, 0);
-                break;
-            case Keyboard.KEYCODE_DONE:
-                ic.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER));
-                break;
-            default:
-                char code = (char)primaryCode;
-                ic.commitText(String.valueOf(code), 1);
-        }
-    }
 }
