@@ -4,15 +4,21 @@ import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.media.AudioManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
+
+import java.util.ArrayList;
 
 public class AndroidIMESampleService extends InputMethodService
         implements KeyboardView.OnKeyboardActionListener {
 
-    private KeyboardView mKeyboardView; // 对应keyboard.xml中定义的KeyboardView
-    private Keyboard mKeyboard;         // 对应qwerty.xml中定义的Keyboard
+    private KeyboardView mKeyboardView;     // 对应keyboard.xml中定义的KeyboardView
+    private Keyboard mKeyboard;             // 对应qwerty.xml中定义的Keyboard
+    private CandidateView mCandidateView;   // 候选窗
+    private StringBuilder m_composeString = new StringBuilder(); // 保存写作串
 
     @Override
     public View onCreateInputView() {
@@ -23,6 +29,20 @@ public class AndroidIMESampleService extends InputMethodService
         // 将自己设为mKeyboardView的listener,以便接收和处理键盘消息
         mKeyboardView.setOnKeyboardActionListener(this);
         return mKeyboardView;
+    }
+
+    @Override public View onCreateCandidatesView(){
+        Log.d(this.getClass().toString(), "onCreateCandidatesView: ");
+        mCandidateView = new CandidateView(this);
+        return mCandidateView;
+    }
+
+    @Override public void onStartInput(EditorInfo editorInfo, boolean restarting){
+        super.onStartInput(editorInfo, restarting);
+        Log.d(this.getClass().toString(), "onStartInput: ");
+
+        m_composeString.setLength(0);
+        setCandidatesViewShown(false);
     }
 
     @Override
@@ -37,7 +57,24 @@ public class AndroidIMESampleService extends InputMethodService
                 break;
             default:
                 char code = (char)primaryCode;
-                ic.commitText(String.valueOf(code), 1);
+                if(code == ' '){ // 如果收到的是空格
+                    if(m_composeString.length() > 0) {  // 如果有写作串，则将首个候选提交上屏
+                        ic.commitText(m_composeString, m_composeString.length());
+                        m_composeString.setLength(0);
+                    }else{                              // 如果没有写作串，则直接将空格上屏
+                        ic.commitText(" ", 1);
+                    }
+                    setCandidatesViewShown(false);
+                }else {          // 否则，将字符计入写作串
+                    m_composeString.append(code);
+                    ic.setComposingText(m_composeString, 1);
+                    setCandidatesViewShown(true);
+                    if(mCandidateView != null){
+                        ArrayList<String> list = new ArrayList<String>();
+                        list.add(m_composeString.toString());
+                        mCandidateView.setSuggestions(list);
+                    }
+                }
         }
     }
 
