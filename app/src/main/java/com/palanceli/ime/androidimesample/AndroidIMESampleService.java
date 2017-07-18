@@ -1,5 +1,7 @@
 package com.palanceli.ime.androidimesample;
 
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
@@ -19,6 +21,7 @@ public class AndroidIMESampleService extends InputMethodService
     private Keyboard mKeyboard;             // 对应qwerty.xml中定义的Keyboard
     private CandidateView mCandidateView;   // 候选窗
     private StringBuilder m_composeString = new StringBuilder(); // 保存写作串
+    private IMChangedReceiver mIMChangedReceiver = new IMChangedReceiver(); // 声明广播接收器
 
     @Override
     public View onCreateInputView() {
@@ -28,6 +31,12 @@ public class AndroidIMESampleService extends InputMethodService
         mKeyboardView.setKeyboard(mKeyboard);
         // 将自己设为mKeyboardView的listener,以便接收和处理键盘消息
         mKeyboardView.setOnKeyboardActionListener(this);
+
+        // 动态注册IMChanged广播
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Intent.ACTION_INPUT_METHOD_CHANGED);
+        registerReceiver(mIMChangedReceiver, intentFilter);
+
         return mKeyboardView;
     }
 

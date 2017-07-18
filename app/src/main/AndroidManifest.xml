@@ -20,11 +20,6 @@
             <meta-data android:name="android.view.im"
                 android:resource="@xml/method" />
         </service>
-        <receiver android:name=".IMChangedReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.INPUT_METHOD_CHANGED"/>
-            </intent-filter>
-        </receiver>
     </application>
 
 </manifest>
